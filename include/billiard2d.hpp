@@ -5,18 +5,21 @@
 
 #include "camera.hpp"
 #include "circle2d.hpp"
+#include "table2d.hpp"
 
 
 class Billiard2D {
 
     Camera *camera_ptr;
     Circle2D *circle_ptr;
+    Table2D *table_ptr;
 
 public:
     Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far);
     ~Billiard2D() {
         delete camera_ptr;
         delete circle_ptr;
+        delete table_ptr;
     }
     void processInput(float delta_time);
     void updateScene(float delta_time);

@@ -54,9 +54,12 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //Circle2D *circle_ptr = new Circle2D(0.f, 0.f, 0.1f, 360, "shaders/circle.vs", "shaders/circle.fs");
-    billiard_game_ptr = new Billiard2D(glm::radians(45.f), SCR_WIDTH * 1.f / SCR_HEIGHT, 0.1f, 100.f);
+    billiard_game_ptr = new Billiard2D(glm::radians(30.f), SCR_WIDTH * 1.f / SCR_HEIGHT, 2.9f, 100.f);
+
 
     // render loop
     // -----------
@@ -70,7 +73,7 @@ int main()
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // circle.render();
         billiard_game_ptr->render();
         last_time = (float)glfwGetTime();
