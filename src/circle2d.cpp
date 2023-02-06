@@ -5,17 +5,19 @@
 Circle2D::Circle2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path) {
     this->cx            = cx;
     this->cy            = cy;
-    this->cx1           = cx1;
-    this->cy1           = cy1;
+    this->cx1           = cx;
+    this->cy1           = cy;
     this->r             = r;
     this->ntriangles    = ntriangles;
     this->shader_ptr    = new Shader(vertex_shader_path.c_str(), fragment_shader_path.c_str());
-
     
+    std::cout << "***********************************\n";
+    std::cout << cx << " " << cy << " " << cx1 << "  " << cy1 << std::endl;
+    std::cout << "***********************************\n";
     // triangulate the circle
     this->vertices      = new float[(ntriangles + 1) * 3];
     this->indices       = new int[ntriangles*3];
-    this->speed         = glm::vec3(0.3f, 0.4f, 0.f);
+    this->speed         = glm::vec3(0.03f, 0.04f, 0.f);
     this->transform     = glm::mat4(1.f);
     //std::cout << this->transform << std::endl;
 
@@ -107,4 +109,24 @@ void Circle2D::update(float deltaTime) {
 
     transform[3][0] = cx1 - cx;
     transform[3][1] = cy1 - cy;
+}
+
+bool Circle2D::collide(const LineSegment2D &segment) {
+    glm::vec2 C = glm::vec2(cx1, cy1);
+    glm::vec2 A = segment.p0 - C;
+    glm::vec2 B = segment.p1 - segment.p0;
+
+    float a = glm::dot(B, B);
+    float b = 2 * glm::dot(A, B);
+    float c = glm::dot(A, A) - r * r;
+
+    float d = b * b - 4 * a * c;
+    if (d < 0) {
+        return false;
+    }
+
+    float t1 = (-b + sqrtf(d)) / (2 * a);
+    float t2 = (-b - sqrtf(d)) / (2 * a);
+
+    return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
 }

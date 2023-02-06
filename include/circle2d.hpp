@@ -10,6 +10,8 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+#include "line2d.hpp"
+
 class Circle2D {
     float cx, cy;
     float cx1, cy1;
@@ -17,7 +19,7 @@ class Circle2D {
     int ntriangles;
     Shader *shader_ptr;
     float *vertices;
-    glm::vec3 speed;
+    
     glm::mat4 transform;
     glm::mat4 view_project_mat;
 
@@ -30,6 +32,7 @@ class Circle2D {
 
 
 public:
+    glm::vec3 speed;
     Circle2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path);
     ~Circle2D() {
         delete shader_ptr;
@@ -45,6 +48,9 @@ public:
     void setViewProjectMatrix(glm::mat4 mat) {
         this->view_project_mat = mat;
     }
+
+    bool collide(const LineSegment2D &segment);
+    
 };
 
 #endif

@@ -7,6 +7,7 @@
 
 
 #include "shader_m.hpp"
+#include "line2d.hpp"
 
 class Table2D {
 
@@ -24,6 +25,7 @@ class Table2D {
 
 
 public:
+    LineSegment2D lines[6];
     Table2D();
     ~Table2D() {
         delete vertices;
