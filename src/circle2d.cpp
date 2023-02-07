@@ -11,14 +11,15 @@ Circle2D::Circle2D(float cx, float cy, float r, int ntriangles, std::string vert
     this->ntriangles    = ntriangles;
     this->shader_ptr    = new Shader(vertex_shader_path.c_str(), fragment_shader_path.c_str());
     
-    std::cout << "***********************************\n";
-    std::cout << cx << " " << cy << " " << cx1 << "  " << cy1 << std::endl;
-    std::cout << "***********************************\n";
+    // std::cout << "***********************************\n";
+    // std::cout << cx << " " << cy << " " << cx1 << "  " << cy1 << std::endl;
+    // std::cout << "***********************************\n";
     // triangulate the circle
     this->vertices      = new float[(ntriangles + 1) * 3];
     this->indices       = new int[ntriangles*3];
-    this->speed         = glm::vec3(0.03f, 0.04f, 0.f);
+    this->speed         = glm::vec3(0.f); //glm::vec3(0.3f, 0.4f, 0.f);
     this->transform     = glm::mat4(1.f);
+    this->view_project_mat = glm::mat4(1.f);
     //std::cout << this->transform << std::endl;
 
     triangulate();

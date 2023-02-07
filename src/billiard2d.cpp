@@ -3,14 +3,15 @@
 
 Billiard2D::Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far) {
     camera_ptr = new Camera(fovy, aspect_ratio, z_near, z_far);
-    circle_ptr = new Circle2D(0.f, 0.f, 0.02f, 360, "shaders/circle.vs", "shaders/circle.fs");
+    circle_ptr = new Circle2D(0.f, 0.f, 0.015f, 360, "shaders/circle.vs", "shaders/circle.fs");
+    circle_ptr->set_z(-0.05f);
     circle_ptr->setViewProjectMatrix(
         camera_ptr->project * camera_ptr->view
     );
-    table_ptr = new Table2D();
-    table_ptr->setViewProjectMatrix(
-        camera_ptr->project * camera_ptr->view
-    );
+    table_ptr = new Table2D(camera_ptr->project * camera_ptr->view);
+    // table_ptr->setViewProjectMatrix(
+        
+    // );
 }
 
 void Billiard2D::processInput(float delta_time) {

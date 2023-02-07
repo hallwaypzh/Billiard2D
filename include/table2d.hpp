@@ -8,6 +8,7 @@
 
 #include "shader_m.hpp"
 #include "line2d.hpp"
+#include "circle2d.hpp"
 
 class Table2D {
 
@@ -26,7 +27,9 @@ class Table2D {
 
 public:
     LineSegment2D lines[6];
-    Table2D();
+    Circle2D *pockets[6] = {NULL};
+
+    Table2D(const glm::mat4 &view_project_mat);
     ~Table2D() {
         delete vertices;
         delete indices;

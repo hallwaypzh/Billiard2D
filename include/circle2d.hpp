@@ -21,7 +21,7 @@ class Circle2D {
     float *vertices;
     
     glm::mat4 transform;
-    glm::mat4 view_project_mat;
+    
 
     int   *indices;
     unsigned int VAO;
@@ -32,6 +32,7 @@ class Circle2D {
 
 
 public:
+    glm::mat4 view_project_mat;
     glm::vec3 speed;
     Circle2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path);
     ~Circle2D() {
@@ -50,6 +51,15 @@ public:
     }
 
     bool collide(const LineSegment2D &segment);
+
+    Circle2D(float cx, float cy, float cz, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path);
+
+    void set_z(float z) {
+        int i = 0;
+        for (int i=0; i< this->ntriangles; i++) {
+            vertices[3*i+2] = z;
+        }
+    }
     
 };
 

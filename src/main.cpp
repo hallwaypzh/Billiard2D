@@ -58,7 +58,7 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //Circle2D *circle_ptr = new Circle2D(0.f, 0.f, 0.1f, 360, "shaders/circle.vs", "shaders/circle.fs");
-    billiard_game_ptr = new Billiard2D(glm::radians(30.f), SCR_WIDTH * 1.f / SCR_HEIGHT, 2.9f, 100.f);
+    billiard_game_ptr = new Billiard2D(glm::radians(22.5f), SCR_WIDTH * 1.f / SCR_HEIGHT, 2.9f, 100.f);
 
 
     // render loop
