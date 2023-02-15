@@ -107,6 +107,8 @@ Table2D::Table2D(const glm::mat4 &view_project_mat) {
     pockets[4]->setViewProjectMatrix(this->view_project_mat);
     pockets[4]->set_z(-0.05f);
 
+    //std::cout << pockets[4]->vertices[3*720+2] << std::endl;
+
     pockets[5] = new Circle2D(lines[1].p0.x, lines[5].p0.y, lines[5].p0.x, 720, "shaders/hole.vs", "shaders/hole.fs");
     pockets[5]->setViewProjectMatrix(this->view_project_mat);
     pockets[5]->set_z(-0.05f);
@@ -115,9 +117,7 @@ Table2D::Table2D(const glm::mat4 &view_project_mat) {
 
 void Table2D::render() {
     for (auto pocket:pockets) {
-        if (pocket != NULL) {
-            pocket->render();
-        }
+        pocket->render();
     }
 
     glActiveTexture(GL_TEXTURE0);
@@ -128,6 +128,4 @@ void Table2D::render() {
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-    
-
 }

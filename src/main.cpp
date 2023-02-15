@@ -11,6 +11,8 @@
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void cursor_position_call_back(GLFWwindow* window, double xpos, double ypos);
+void cursor_button_call_back(GLFWwindow*, int, int, int);
 void processInput(GLFWwindow *window);
 
 void generate_circle(float cx, float cy, float radius, int ntriangles, float *vertices, int *indices);
@@ -59,7 +61,8 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //Circle2D *circle_ptr = new Circle2D(0.f, 0.f, 0.1f, 360, "shaders/circle.vs", "shaders/circle.fs");
     billiard_game_ptr = new Billiard2D(glm::radians(22.5f), SCR_WIDTH * 1.f / SCR_HEIGHT, 2.9f, 100.f);
-
+    glfwSetCursorPosCallback(window, cursor_position_call_back);
+    glfwSetMouseButtonCallback(window, cursor_button_call_back);
 
     // render loop
     // -----------
@@ -129,3 +132,23 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     billiard_game_ptr->updateAspectRatio(width * 1.f / height);
 }
 
+void cursor_position_call_back(GLFWwindow* window, double xpos, double ypos) {
+    int window_height, window_width;
+    glfwGetWindowSize(window, &window_width, &window_height);
+    glm::mat3x3 mat(
+        2.f/window_width, 0.f, 0.f,
+        0.f, -2.f/window_height, 0.f,
+        -1.f, 1.f, 1.f
+    );
+
+    glm::vec3 v = mat * glm::vec3(xpos, ypos, 1.);   
+    glm::mat4 mat_vp = billiard_game_ptr->camera_ptr->project * billiard_game_ptr->camera_ptr->view;
+    glm::vec4 v1 = (mat_vp * glm::vec4 (0.f, 0.f, -0.05f, 1.f));
+    v.z = v1.z / v1.w;
+    glm::vec4 v2 = glm::inverse(mat_vp) * glm::vec4(v, 1.f);
+    billiard_game_ptr->updateCueAngle(glm::vec3(v2.x/v2.w, v2.y/v2.w, v2.z/v2.w));
+}
+
+void cursor_button_call_back(GLFWwindow* window, int button, int action, int mods) {
+    billiard_game_ptr->updatePlayerPhase(button, action);
+}

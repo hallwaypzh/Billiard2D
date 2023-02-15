@@ -1,7 +1,5 @@
 #include "circle2d.hpp"
 
-
-
 Circle2D::Circle2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path) {
     this->cx            = cx;
     this->cy            = cy;
@@ -49,6 +47,8 @@ Circle2D::Circle2D(float cx, float cy, float r, int ntriangles, std::string vert
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
+
+    pocket_ptr = NULL;
 }
 
 void Circle2D::triangulate() {
@@ -131,3 +131,11 @@ bool Circle2D::collide(const LineSegment2D &segment) {
 
     return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
 }
+
+bool Circle2D::isFalling(const Circle2D &pocket) {
+    glm::vec2 v(cx1 - pocket.cx1, cy1 - pocket.cy1);
+    return glm::dot(v, v) < pocket.r * pocket.r;
+}
+
+
+
