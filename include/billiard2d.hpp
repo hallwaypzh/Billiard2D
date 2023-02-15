@@ -16,7 +16,8 @@
 enum PlayerPhase {
     ADJUST_ANGLE,
     ADJUST_STRENGTH,
-    RELEASE_CUE
+    RELEASE_CUE,
+    BALLS_MOVING
 };
 
 

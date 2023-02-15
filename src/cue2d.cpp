@@ -79,3 +79,23 @@ void Cue2D::render() {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
+
+void Cue2D::update(float delta_time) {
+    if (state == FIRING) {
+        glm::mat3 cue_state(acceleration, speed, displacement);
+        glm::mat3 mat(1.f, delta_time, 0.5 * delta_time * delta_time,
+                      0.f,        1.f, delta_time,
+                      0.f,        0.f, 1.f);
+        cue_state =  glm::transpose(mat * glm::transpose(cue_state)); 
+
+        acceleration = cue_state[0];
+        speed        = cue_state[1];
+        displacement = cue_state[2];
+        // std::cout << "ACC " << acceleration.x << " " << acceleration.y << " " << acceleration.z << std::endl;
+        // std::cout << "VEL " << speed.x << " " << speed.y << " " << speed.z << std::endl;
+        // std::cout << "DIS " << displacement.x << " " << displacement.y << " " << displacement.z << std::endl;
+
+        translation_mat0 = glm::translate(translation_mat0, displacement);
+    }
+
+}

@@ -36,12 +36,16 @@ class Circle2D {
 public:
     float *vertices;
     float r;
+    float mass;
     float cx1, cy1;
+    float sliding_fraction;
     BallStatus status;
     Circle2D *pocket_ptr;
     glm::mat4 view_project_mat;
     glm::vec3 speed;
     glm::vec3 acceleration;
+    glm::vec3 displacement;
+
     Circle2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path);
     ~Circle2D() {
         delete shader_ptr;

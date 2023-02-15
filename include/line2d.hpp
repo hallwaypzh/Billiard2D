@@ -12,8 +12,6 @@ enum Direction {
 
 class LineSegment2D {
 
-    
-
 public:
 
     glm::vec2 p0;

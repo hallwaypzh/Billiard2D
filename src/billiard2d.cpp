@@ -4,6 +4,7 @@
 Billiard2D::Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far) {
     camera_ptr = new Camera(fovy, aspect_ratio, z_near, z_far);
     circle_ptr = new Circle2D(0.1f, 0.2f, 0.015f, 360, "shaders/circle.vs", "shaders/circle.fs");
+    circle_ptr->sliding_fraction = 0.2;
     circle_ptr->set_z(-0.05f);
     circle_ptr->setViewProjectMatrix(
         camera_ptr->project * camera_ptr->view
@@ -18,9 +19,28 @@ void Billiard2D::processInput(float delta_time) {
 }
 
 void Billiard2D::updateScene(float delta_time) {
+    this->cue_ptr->update(delta_time);
     int i = 0;
-    //std::cout << "***************************\n";
+    //std::cout << "***************************\n";    
     if (this->circle_ptr != NULL) {
+        if (cue_ptr->state == FIRING) {
+            glm::vec4 tip = cue_ptr->translation_mat1 * cue_ptr->translation_mat0 * cue_ptr->rotation_mat * glm::vec4(0.f, 0.f, -0.05f, 1.f);
+            glm::vec3 v = glm::vec3(tip)-glm::vec3(circle_ptr->cx1, circle_ptr->cy1, -0.05f);
+            float diff = circle_ptr->r - glm::length(v);
+            if (diff > 0) {
+                // ball collide with cue
+                glm::vec3 v1 = diff * glm::normalize(v);
+                cue_ptr->translation_mat0 = glm::translate(cue_ptr->translation_mat0, v1);
+                circle_ptr->speed = cue_ptr->speed * cue_ptr->mass / circle_ptr->mass;
+
+                cue_ptr->speed = glm::vec3(0.f);
+                cue_ptr->acceleration = glm::vec3(0.f);
+                cue_ptr->state = STOPPED;
+                
+                // transfer the momentum of the cue on to the ball 
+
+            }
+        }
         this->circle_ptr->update(delta_time);
         if (this->circle_ptr->status != FALLING) {
             for (auto line : table_ptr->lines) {
@@ -109,13 +129,16 @@ void Billiard2D::updatePlayerPhase(int button, int action) {
                     if (!mouse_button_pressed[GLFW_MOUSE_BUTTON_RIGHT]) {
                         player_active = false;
                         phase = RELEASE_CUE;
+                        glm::vec4 tip = cue_ptr->translation_mat1 * cue_ptr->rotation_mat * glm::vec4(0.f, 0.f, -0.05f, 1.f);
+                        glm::vec3 d = glm::vec3(circle_ptr->cx1, circle_ptr->cy1, -0.05f) - glm::vec3(tip);
+                        cue_ptr->state = FIRING;
+                        cue_ptr->acceleration = 0.5f * d;
                     }
                     mouse_button_pressed[GLFW_MOUSE_BUTTON_LEFT] = false;
                 }
             }
             if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                 if (action == GLFW_RELEASE) {
-                    std::cout << "reset the process of adjusting cue\n";
                     phase = ADJUST_ANGLE;
                     mouse_button_pressed[GLFW_MOUSE_BUTTON_RIGHT] = false;
                 } else {

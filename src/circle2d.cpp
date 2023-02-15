@@ -15,6 +15,7 @@ Circle2D::Circle2D(float cx, float cy, float r, int ntriangles, std::string vert
     // triangulate the circle
     this->vertices      = new float[(ntriangles + 1) * 3];
     this->indices       = new int[ntriangles*3];
+    this->acceleration  = glm::vec3(0.f);
     this->speed         = glm::vec3(0.f); //glm::vec3(0.3f, 0.4f, 0.f);
     this->transform     = glm::mat4(1.f);
     this->view_project_mat = glm::mat4(1.f);
@@ -49,6 +50,7 @@ Circle2D::Circle2D(float cx, float cy, float r, int ntriangles, std::string vert
     glBindVertexArray(0);
 
     pocket_ptr = NULL;
+    this->mass = 0.160f;
 }
 
 void Circle2D::triangulate() {
@@ -86,26 +88,41 @@ void Circle2D::render() {
 void Circle2D::update(float deltaTime) {
     // this is not physically accurate!
 
-    // see if the circle is out of table
-    cx1 = cx1 + deltaTime * speed.x;
-    cy1 = cy1 + deltaTime * speed.y;
-    //std::cout << deltaTime << " " << cx1 << " " << cy1 << std::endl;
-
-    if ((cx1 - r < -0.99f) || (cx1 + r > 0.99f) ||
-        (cy1 - r < -0.99f) || (cy1 + r > 0.99f)) {
-
-        // fix speed 
-        // can we use a reflection matrix here?
-        if ((cx1 > 0.99f-r) || (cx1 < -0.99f+r)) {
-            speed.x = 0.86 * -speed.x;
+    if (glm::length(speed) > 0) {
+        acceleration = -(sliding_fraction * mass * 0.2f) * glm::normalize(speed);
+        glm::vec3 speed1        = speed + acceleration * deltaTime;
+        if (glm::dot(speed1, speed) < 0) {
+            deltaTime = glm::length(speed) / glm::length(acceleration);
         }
-        if ((cy1 > 0.99f-r) || (cy1 < -0.99f+r)) {
-            speed.y = 0.86 * -speed.y;
-        }
-        // fix center
-        cx1 = std::min(std::max(cx1, -0.99f+r), 0.99f-r);
-        cy1 = std::min(std::max(cy1, -0.99f+r), 0.99f-r);
+        displacement = displacement + speed * deltaTime + 0.5f * acceleration * deltaTime * deltaTime;
+        speed = speed1;
+        cx1 = cx + displacement.x;
+        cy1 = cy + displacement.y;
     }
+
+
+
+
+
+    // see if the circle is out of table
+    // cx1 = cx1 + deltaTime * speed.x;
+    // cy1 = cy1 + deltaTime * speed.y;
+    // //std::cout << deltaTime << " " << cx1 << " " << cy1 << std::endl;
+
+    // if ((cx1 - r < -0.99f) || (cx1 + r > 0.99f) ||
+    //     (cy1 - r < -0.99f) || (cy1 + r > 0.99f)) {
+    //     // fix speed 
+    //     // can we use a reflection matrix here?
+    //     if ((cx1 > 0.99f-r) || (cx1 < -0.99f+r)) {
+    //         speed.x = 0.86 * -speed.x;
+    //     }
+    //     if ((cy1 > 0.99f-r) || (cy1 < -0.99f+r)) {
+    //         speed.y = 0.86 * -speed.y;
+    //     }
+    //     // fix center
+    //     cx1 = std::min(std::max(cx1, -0.99f+r), 0.99f-r);
+    //     cy1 = std::min(std::max(cy1, -0.99f+r), 0.99f-r);
+    // }
 
 
     transform[3][0] = cx1 - cx;

@@ -2,9 +2,16 @@
 #define CUE2D_HPP
 
 #include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <glad/glad.h>
 
 #include "shader_m.hpp"
+
+enum CueState {
+    ADJUSTING,
+    FIRING,
+    STOPPED
+};
 
 class Cue2D {
     unsigned char *texture_data;
@@ -19,10 +26,16 @@ class Cue2D {
 
     glm::mat4 view_project_mat = glm::mat4(1.f);
 
+
 public:
+    glm::vec3 speed = glm::vec3(0.f);
+    glm::vec3 acceleration = glm::vec3(0.f);
+    glm::vec3 displacement = glm::vec3(0.f);
     glm::mat4 translation_mat0 = glm::mat4(1.f);
     glm::mat4 translation_mat1 = glm::mat4(1.f);
     glm::mat4 rotation_mat = glm::mat4(1.f);
+    float     mass         = 1.f;
+    CueState state = ADJUSTING;
     Cue2D(const glm::mat4 &view_project_mat);
     ~Cue2D() {
         delete vertices;
@@ -35,14 +48,11 @@ public:
     }
 
     void render();
-
     void setViewProjectMatrix(glm::mat4 mat) {
         view_project_mat = mat;
     }
 
-
-
-
+    void update(float delta_time);
 };
 
 #endif
