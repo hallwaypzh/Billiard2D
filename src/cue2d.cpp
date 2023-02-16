@@ -53,10 +53,11 @@ Cue2D::Cue2D(const glm::mat4 &view_project_mat) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int texture_width, texture_height, texture_channels;
-    texture_data = stbi_load("res/textures/cue.png", &texture_width, &texture_height, &texture_channels, 0);
+    texture_data = stbi_load("res/textures/cue1.png", &texture_width, &texture_height, &texture_channels, 0);
 
 
-    shader_ptr = new Shader("shaders/table.vs", "shaders/table.fs");
+    //shader_ptr = new Shader("shaders/table.vs", "shaders/table.fs");
+    shader_ptr = new Shader("shaders/cue.vs", "shaders/cue.fs");
     std::cout << texture_width << " " << texture_height << " " << texture_channels << std::endl;
     if (texture_data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_width, texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
@@ -71,17 +72,22 @@ Cue2D::Cue2D(const glm::mat4 &view_project_mat) {
 }
 
 void Cue2D::render() {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    shader_ptr->use();
-    shader_ptr->setMat4("transform", view_project_mat*translation_mat1*translation_mat0*rotation_mat);
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    if (state != STOPPED) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        shader_ptr->use();
+        shader_ptr->setMat4("transform", view_project_mat*translation_mat1*translation_mat0*rotation_mat);
+        // std::cout << "alpha" << " " << alpha << std::endl;
+        shader_ptr->setFloat("alpha", alpha);
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
 }
 
 void Cue2D::update(float delta_time) {
     if (state == FIRING) {
+        
         glm::mat3 cue_state(acceleration, speed, displacement);
         glm::mat3 mat(1.f, delta_time, 0.5 * delta_time * delta_time,
                       0.f,        1.f, delta_time,
@@ -94,8 +100,11 @@ void Cue2D::update(float delta_time) {
         // std::cout << "ACC " << acceleration.x << " " << acceleration.y << " " << acceleration.z << std::endl;
         // std::cout << "VEL " << speed.x << " " << speed.y << " " << speed.z << std::endl;
         // std::cout << "DIS " << displacement.x << " " << displacement.y << " " << displacement.z << std::endl;
-
         translation_mat0 = glm::translate(translation_mat0, displacement);
     }
 
+    if (state == STOPPED) {
+        fade_frame_cnt += 1;
+        alpha = std::max(1.f-(1.f *fade_frame_cnt)/FADE_FRAMES, 0.f);
+    }
 }

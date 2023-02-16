@@ -89,12 +89,12 @@ void Circle2D::update(float deltaTime) {
     // this is not physically accurate!
 
     if (glm::length(speed) > 0) {
-        acceleration = -(sliding_fraction * mass * 0.2f) * glm::normalize(speed);
+        acceleration = -(sliding_fraction * mass * 0.4f) * glm::normalize(speed);
         glm::vec3 speed1        = speed + acceleration * deltaTime;
         if (glm::dot(speed1, speed) < 0) {
             deltaTime = glm::length(speed) / glm::length(acceleration);
         }
-        displacement = displacement + speed * deltaTime + 0.5f * acceleration * deltaTime * deltaTime;
+        displacement = displacement + speed * deltaTime + 0.2f * acceleration * deltaTime * deltaTime;
         speed = speed1;
         cx1 = cx + displacement.x;
         cy1 = cy + displacement.y;

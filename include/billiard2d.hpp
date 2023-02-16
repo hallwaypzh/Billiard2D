@@ -54,6 +54,8 @@ public:
     void updateCueAngle(glm::vec3 v);
 
     void updatePlayerPhase(int button, int action);
+
+    bool noBallsMoving();
 };
 
 #endif

@@ -70,7 +70,6 @@ public:
     //         vertices[3*i+2] = z;
     //     }
     //     vertices[3*i+2] = z;
-
     // }
 
     bool isFalling(const Circle2D &pocket);

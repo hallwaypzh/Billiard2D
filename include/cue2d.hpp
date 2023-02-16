@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glad/glad.h>
+#include <algorithm>
 
 #include "shader_m.hpp"
 
@@ -24,10 +25,12 @@ class Cue2D {
     unsigned int EBO;
     unsigned int texture;
 
+    unsigned int FADE_FRAMES = 10;
+
     glm::mat4 view_project_mat = glm::mat4(1.f);
-
-
 public:
+    unsigned int fade_frame_cnt = 0;
+    float alpha = 1.f;
     glm::vec3 speed = glm::vec3(0.f);
     glm::vec3 acceleration = glm::vec3(0.f);
     glm::vec3 displacement = glm::vec3(0.f);
