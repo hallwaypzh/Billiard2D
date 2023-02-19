@@ -12,6 +12,7 @@
 #include "circle2d.hpp"
 #include "table2d.hpp"
 #include "cue2d.hpp"
+#include "ball2d.hpp"
 
 enum PlayerPhase {
     ADJUST_ANGLE,
@@ -22,7 +23,8 @@ enum PlayerPhase {
 
 
 class Billiard2D {
-    Circle2D *circle_ptr;
+    //Circle2D *circle_ptr;
+    Ball2D      *circle_ptr;
     Table2D *table_ptr;
     Cue2D *cue_ptr;
     bool player_active = true;

@@ -3,9 +3,9 @@
 
 Billiard2D::Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far) {
     camera_ptr = new Camera(fovy, aspect_ratio, z_near, z_far);
-    circle_ptr = new Circle2D(0.f, 0.f, 0.015f, 360, "shaders/circle.vs", "shaders/circle.fs");
+    circle_ptr = new Ball2D(0.1f, 0.2f, 0.015f, 360, "shaders/circle.vs", "shaders/circle.fs");
     circle_ptr->sliding_fraction = 0.2;
-    circle_ptr->set_z(-0.05f);
+    circle_ptr->set_z(-0.049f);
     circle_ptr->setViewProjectMatrix(
         camera_ptr->project * camera_ptr->view
     );
@@ -35,8 +35,7 @@ void Billiard2D::updateScene(float delta_time) {
                 cue_ptr->speed = glm::vec3(0.f);
                 cue_ptr->acceleration = glm::vec3(0.f);
                 cue_ptr->state = STOPPED;
-                // std::cout << "STOPPED MOVING!\n";
-                // transfer the momentum of the cue on to the ball
+                std::cout << "CUE STOPPED MOVING! BALL START MOVING!\n";
             }
         }
         this->circle_ptr->update(delta_time);
@@ -74,19 +73,21 @@ void Billiard2D::updateScene(float delta_time) {
             }
         }
         if (cue_ptr->state==STOPPED && noBallsMoving()) {
+            std::cout <<  "Ball stopped moving\n";
             phase = ADJUST_ANGLE;
             player_active = true;
             cue_ptr->state = ADJUSTING;
+            circle_ptr->speed = glm::vec3(0.f);
         }
     }
 }
 
 void Billiard2D::render() {
     cue_ptr->render();
+    this->table_ptr->render();
     if (this->circle_ptr != NULL) {
         this->circle_ptr->render();
     }
-    this->table_ptr->render();
 }
 
 void Billiard2D::updateCueAngle(glm::vec3 v) {
@@ -158,7 +159,7 @@ void Billiard2D::updatePlayerPhase(int button, int action) {
 
 bool Billiard2D::noBallsMoving() {
     if (circle_ptr) {
-        return glm::length(circle_ptr->speed) < 1e-6;
+        return glm::length(circle_ptr->speed) < 1e-5;
     }
     return true;
 }

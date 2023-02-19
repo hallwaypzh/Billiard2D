@@ -94,7 +94,7 @@ void Circle2D::update(float deltaTime) {
         if (glm::dot(speed1, speed) < 0) {
             deltaTime = glm::length(speed) / glm::length(acceleration);
         }
-        displacement = displacement + speed * deltaTime + 0.2f * acceleration * deltaTime * deltaTime;
+        displacement = displacement + speed * deltaTime + 0.5f * acceleration * deltaTime * deltaTime;
         speed = speed1;
         cx1 = cx + displacement.x;
         cy1 = cy + displacement.y;

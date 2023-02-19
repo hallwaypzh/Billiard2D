@@ -1,5 +1,5 @@
-#ifndef CIRCLE2D_H
-#define CIRCLE2D_H
+#ifndef BALL2D_HPP
+#define BALL2D_HPP
 
 #include <string>
 #include <algorithm>
@@ -11,18 +11,17 @@
 #include <glm/ext/matrix_transform.hpp>
 
 #include "line2d.hpp"
+#include "circle2d.hpp"
 
-enum BallStatus {
-    STATIC,
-    ROLLING,
-    FALLING,
-};
+// enum BallStatus {
+//     STATIC,
+//     ROLLING,
+//     FALLING,
+// };
 
-class Circle2D {
+class Ball2D {
     float cx, cy;
     float cz;
-
-    
     int ntriangles;
     Shader *shader_ptr;
     
@@ -32,6 +31,7 @@ class Circle2D {
     unsigned int VAO;
     unsigned int VBO;
     unsigned int EBO;
+    unsigned int texture;
     void triangulate();
 public:
     float *vertices;
@@ -46,14 +46,15 @@ public:
     glm::vec3 acceleration;
     glm::vec3 displacement;
 
-    Circle2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path);
-    ~Circle2D() {
+    Ball2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path);
+    ~Ball2D() {
         delete shader_ptr;
         delete vertices;
         delete indices;
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
+        glDeleteBuffers(1, &texture);
     }
     void render();
     void update(float deltaTime);
@@ -63,22 +64,15 @@ public:
     }
 
     bool collide(const LineSegment2D &segment);
+    bool collide(const Ball2D &ball);
 
-    // void set_z(float z) {
-    //     int i = 0;
-    //     for (i=0; i< this->ntriangles; i++) {
-    //         vertices[3*i+2] = z;
-    //     }
-    //     vertices[3*i+2] = z;
-    // }
-
+    float getCollideTime(const Ball2D &ball, float deltaTime, float absoluteTolerance);
     bool isFalling(const Circle2D &pocket);
     
 
     void updateTransform() {
-        this->transform[3][0] = cx1 - cx;
-        this->transform[3][1] = cy1 - cy;
-        std::cout << transform[3][0] << " " << transform[3][1] << std::endl;
+        this->transform[3][0] = cx1;
+        this->transform[3][1] = cy1;
         this->transform[3][2] = cz;
     }
 
