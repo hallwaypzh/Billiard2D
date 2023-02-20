@@ -19,6 +19,8 @@
 //     FALLING,
 // };
 
+//class Billiard2D;
+
 struct BallState {
     glm::vec3 displacement;
     glm::vec3 speed;
@@ -39,6 +41,10 @@ class Ball2D {
     unsigned int EBO;
     unsigned int texture;
     void triangulate();
+
+    BallState old_state;
+
+    //Billiard2D* game_ptr = NULL; //so that we can access the geometries of the game easily
 public:
     float *vertices;
     float r;
@@ -113,6 +119,22 @@ public:
             acceleration = glm::vec3(0.f);
         }
     }
+
+    void backupState() {
+        old_state.displacement = displacement;
+        old_state.speed        = speed;
+        old_state.acceleration = acceleration;
+    }
+
+    void recoverOldState() {
+        displacement           = old_state.displacement;
+        speed                  = old_state.speed;
+        acceleration           = old_state.acceleration;
+        cx1                    = displacement.x;
+        cy1                    = displacement.y;
+    }
+
+    //void setGamePtr(Billiard2D* game_ptr);
 };
 
 #endif

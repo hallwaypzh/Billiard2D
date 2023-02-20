@@ -34,6 +34,8 @@ class Billiard2D {
 
     bool mouse_button_pressed[2] = {false, false};
 
+    Ball2D *balls[16];
+ 
 public:
     Camera *camera_ptr;
     Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far);
@@ -41,6 +43,15 @@ public:
         delete camera_ptr;
         if (circle_ptr != NULL) {
             delete circle_ptr;
+        }
+        if (circle_ptr1 != NULL) {
+            delete circle_ptr1;
+        }
+
+        for (int i=1; i<16; i++) {
+            if (balls[i] != NULL) {
+                delete balls[i];
+            }
         }
         delete table_ptr;
     }

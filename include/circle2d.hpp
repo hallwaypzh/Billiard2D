@@ -78,7 +78,7 @@ public:
     void updateTransform() {
         this->transform[3][0] = cx1 - cx;
         this->transform[3][1] = cy1 - cy;
-        std::cout << transform[3][0] << " " << transform[3][1] << std::endl;
+        //std::cout << transform[3][0] << " " << transform[3][1] << std::endl;
         this->transform[3][2] = cz;
     }
 

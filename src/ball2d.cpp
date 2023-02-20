@@ -98,6 +98,7 @@ void Ball2D::render() {
 }
 
 void Ball2D::update(float deltaTime) {
+    backupState();
     if (glm::length(speed) > 0) {
         acceleration = -(sliding_fraction * mass * 0.4f) * glm::normalize(speed);
         glm::vec3 speed1 = speed + acceleration * deltaTime;

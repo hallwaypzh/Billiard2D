@@ -18,8 +18,8 @@ void processInput(GLFWwindow *window);
 void generate_circle(float cx, float cy, float radius, int ntriangles, float *vertices, int *indices);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1600;
+const unsigned int SCR_HEIGHT = 900;
 int current_screen_width, current_screen_height;
 
 Billiard2D *billiard_game_ptr;

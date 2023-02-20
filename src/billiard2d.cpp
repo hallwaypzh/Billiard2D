@@ -9,7 +9,7 @@ Billiard2D::Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far
     circle_ptr->setViewProjectMatrix(
         camera_ptr->project * camera_ptr->view
     );
-    circle_ptr->speed = glm::vec3(0.f, 0.0f, 0.f);
+    //circle_ptr->setGamePtr(this);
 
     circle_ptr1 = new Ball2D(0.1f, -0.f, 0.015f, 360, "res/textures/ball1.png");
     circle_ptr1->sliding_fraction = 0.2;
@@ -17,7 +17,35 @@ Billiard2D::Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far
     circle_ptr1->setViewProjectMatrix(
         camera_ptr->project * camera_ptr->view
     );
-    circle_ptr1->speed = glm::vec3(0.f, 0.0f, 0.f);
+    //circle_ptr1->setGamePtr(this);
+
+
+    // set up the balls
+    glm::vec3 d1(sqrtf(3)/2.f, 0.5f, 0.f);
+    glm::vec3 d2(sqrtf(3)/2.f, -0.5f, 0.f);
+    for (int i=0; i<16; i++) {
+        balls[i] = NULL;
+    }
+    int idx = 1;
+    float eps = 2e-3;
+    glm::vec3 p0(0.f);
+    float radius = 0.015f;
+    float d = 2 * radius + eps;
+    for (int i=0; i<5; i++) {
+        for (int j=0; j<=i; j++) {
+            glm::vec3 p = ((j * 1.f) * d1 + ((i-j) * 1.f) * d2) * d;
+            std::cout <<"Ball " << idx << " " << p.x << " " << p.y << std::endl;
+            char texture_path[50];
+            sprintf(texture_path, "res/textures/ball%d.png", idx);
+            balls[idx] = new Ball2D(p.x, p.y, radius, 360, texture_path);
+            balls[idx]->set_z(-0.049f+1e-5*idx); // prevent z fighting
+            balls[idx]->setViewProjectMatrix(
+                camera_ptr->project * camera_ptr->view
+            );
+            idx++;
+        }
+    }
+
 
     table_ptr = new Table2D(camera_ptr->project * camera_ptr->view);
     cue_ptr = new Cue2D(camera_ptr->project * camera_ptr->view);
@@ -50,14 +78,11 @@ void Billiard2D::updateScene(float delta_time) {
 
     if (phase == BALLS_MOVING) {
         // collect old states
-        BallState states[2];
         if (circle_ptr) {
-            states[0] = circle_ptr->getState();
-            this->circle_ptr->update(delta_time);
+            circle_ptr->update(delta_time);
         }
         if (circle_ptr1) {
-            states[1] = circle_ptr1->getState();
-            this->circle_ptr1->update(delta_time);
+            circle_ptr1->update(delta_time);
         }
         //std::cout << glm::length(circle_ptr->displacement-circle_ptr1->displacement) << std::endl;
 
@@ -121,8 +146,8 @@ void Billiard2D::updateScene(float delta_time) {
             std::cout << "**************\n";
             std::cout << glm::length(circle_ptr1->displacement-circle_ptr->displacement) << std::endl;
             std::cout << "Collide!\n";
-            circle_ptr->setState(states[0]);
-            circle_ptr1->setState(states[1]);
+            circle_ptr1->recoverOldState();
+            circle_ptr->recoverOldState();
             //std::cout << glm::length(circle_ptr1->displacement-circle_ptr->displacement) << std::endl;
             float t = circle_ptr->getCollideTime(*circle_ptr1, delta_time, 1e-5);
             circle_ptr->update(t);
@@ -162,8 +187,14 @@ void Billiard2D::render() {
     if (this->circle_ptr != NULL) {
         this->circle_ptr->render();
     }
-    if (this->circle_ptr1 != NULL) {
-        this->circle_ptr1->render();
+    // if (this->circle_ptr1 != NULL) {
+    //     this->circle_ptr1->render();
+    // }
+
+    for (int i=1; i<16; i++) {
+        if (balls[i] != NULL) {
+            balls[i]->render();
+        }
     }
 }
 
