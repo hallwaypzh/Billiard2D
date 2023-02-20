@@ -25,6 +25,7 @@ enum PlayerPhase {
 class Billiard2D {
     //Circle2D *circle_ptr;
     Ball2D      *circle_ptr;
+    Ball2D      *circle_ptr1;
     Table2D *table_ptr;
     Cue2D *cue_ptr;
     bool player_active = true;

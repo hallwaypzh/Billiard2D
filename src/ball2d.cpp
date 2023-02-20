@@ -1,7 +1,7 @@
 #include "ball2d.hpp"
 #include "stb_image.h"
 
-Ball2D::Ball2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path) {
+Ball2D::Ball2D(float cx, float cy, float r, int ntriangles, std::string texture_path) {
     this->cx            = 0.f;
     this->cy            = 0.f;
     this->cx1           = cx;
@@ -63,7 +63,7 @@ Ball2D::Ball2D(float cx, float cy, float r, int ntriangles, std::string vertex_s
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int texture_width, texture_height, texture_channels;
-    unsigned char* texture_data = stbi_load("res/textures/ball1.png", &texture_width, &texture_height, &texture_channels, 0);
+    unsigned char* texture_data = stbi_load(texture_path.c_str(), &texture_width, &texture_height, &texture_channels, 0);
 
 
     //shader_ptr = new Shader("shaders/table.vs", "shaders/table.fs");
@@ -85,7 +85,8 @@ Ball2D::Ball2D(float cx, float cy, float r, int ntriangles, std::string vertex_s
 
 
 void Ball2D::render() {
-    std::cout << this->cx1 << " " << this->cy1 << " " << this->displacement.x << " " << this->displacement.y << std::endl;
+    transform[3][0] = cx1 - cx;
+    transform[3][1] = cy1 - cy;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
     shader_ptr->use();
@@ -99,17 +100,15 @@ void Ball2D::render() {
 void Ball2D::update(float deltaTime) {
     if (glm::length(speed) > 0) {
         acceleration = -(sliding_fraction * mass * 0.4f) * glm::normalize(speed);
-        glm::vec3 speed1        = speed + acceleration * deltaTime;
+        glm::vec3 speed1 = speed + acceleration * deltaTime;
         if (glm::dot(speed1, speed) < 0) {
             deltaTime = glm::length(speed) / glm::length(acceleration);
         }
         displacement = displacement + speed * deltaTime + 0.5f * acceleration * deltaTime * deltaTime;
-        speed = speed1;
+        speed = speed + acceleration * deltaTime;
         cx1 = displacement.x;
         cy1 = displacement.y;
     }
-    transform[3][0] = cx1 - cx;
-    transform[3][1] = cy1 - cy;
 }
 
 bool Ball2D::collide(const LineSegment2D &segment) {
@@ -144,14 +143,18 @@ bool Ball2D::collide(const Ball2D &ball) {
 
 
 float Ball2D::getCollideTime(const Ball2D &ball, float deltaTime, float absoluteTolerance=1e-5) {
-    float l = 0, r = deltaTime;
+    float l = 0.f, r = deltaTime;
+
     glm::vec3 A = glm::vec3(cx1, cy1, cz) - glm::vec3(ball.cx1, ball.cy1, ball.cz); //relative displacement
     glm::vec3 B = speed - ball.speed;
     glm::vec3 C = 0.5f * (acceleration - ball.acceleration);
-    float d = ball.r + r;
+    float d = ball.r + this->r;
     while (true) {
         float m = (l + r) / 2.f;
         float t = glm::length(A + B * m + C * m * m) - d;
+        float t1 = glm::length(A + B * l + C * l * l) - d;
+        float t2 = glm::length(A + B * r + C * r * r) - d;
+
         if (t < 0.) {
             r = m;
         } else if (t > absoluteTolerance) {

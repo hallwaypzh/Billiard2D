@@ -3,13 +3,22 @@
 
 Billiard2D::Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far) {
     camera_ptr = new Camera(fovy, aspect_ratio, z_near, z_far);
-    circle_ptr = new Ball2D(0.1f, 0.2f, 0.015f, 360, "shaders/circle.vs", "shaders/circle.fs");
+    circle_ptr = new Ball2D(0.1f, 0.2f, 0.015f, 360, "res/textures/ball0.png");
     circle_ptr->sliding_fraction = 0.2;
     circle_ptr->set_z(-0.049f);
     circle_ptr->setViewProjectMatrix(
         camera_ptr->project * camera_ptr->view
     );
     circle_ptr->speed = glm::vec3(0.f, 0.0f, 0.f);
+
+    circle_ptr1 = new Ball2D(0.1f, -0.f, 0.015f, 360, "res/textures/ball1.png");
+    circle_ptr1->sliding_fraction = 0.2;
+    circle_ptr1->set_z(-0.049f);
+    circle_ptr1->setViewProjectMatrix(
+        camera_ptr->project * camera_ptr->view
+    );
+    circle_ptr1->speed = glm::vec3(0.f, 0.0f, 0.f);
+
     table_ptr = new Table2D(camera_ptr->project * camera_ptr->view);
     cue_ptr = new Cue2D(camera_ptr->project * camera_ptr->view);
 }
@@ -22,24 +31,64 @@ void Billiard2D::updateScene(float delta_time) {
     this->cue_ptr->update(delta_time);
     int i = 0;
     //std::cout << "***************************\n";    
-    if (this->circle_ptr != NULL) {
-        if (cue_ptr->state == FIRING) {
-            glm::vec4 tip = cue_ptr->translation_mat1 * cue_ptr->translation_mat0 * cue_ptr->rotation_mat * glm::vec4(0.f, 0.f, -0.05f, 1.f);
-            glm::vec3 v = glm::vec3(tip)-glm::vec3(circle_ptr->cx1, circle_ptr->cy1, -0.05f);
-            float diff = circle_ptr->r - glm::length(v);
-            if (diff > 0) {
-                // ball collide with cue
-                glm::vec3 v1 = diff * glm::normalize(v);
-                cue_ptr->translation_mat0 = glm::translate(cue_ptr->translation_mat0, v1);
-                circle_ptr->speed = cue_ptr->speed * cue_ptr->mass / circle_ptr->mass;
-                cue_ptr->speed = glm::vec3(0.f);
-                cue_ptr->acceleration = glm::vec3(0.f);
-                cue_ptr->state = STOPPED;
-                std::cout << "CUE STOPPED MOVING! BALL START MOVING!\n";
+    if (cue_ptr->state == FIRING && this->circle_ptr != NULL) {
+        glm::vec4 tip = cue_ptr->translation_mat1 * cue_ptr->translation_mat0 * cue_ptr->rotation_mat * glm::vec4(0.f, 0.f, -0.05f, 1.f);
+        glm::vec3 v = glm::vec3(tip)-glm::vec3(circle_ptr->cx1, circle_ptr->cy1, -0.05f);
+        float diff = circle_ptr->r - glm::length(v);
+        if (diff > 0) {
+            // ball collide with cue
+            glm::vec3 v1 = diff * glm::normalize(v);
+            cue_ptr->translation_mat0 = glm::translate(cue_ptr->translation_mat0, v1);
+            circle_ptr->speed = cue_ptr->speed * cue_ptr->mass / circle_ptr->mass;
+            cue_ptr->speed = glm::vec3(0.f);
+            cue_ptr->acceleration = glm::vec3(0.f);
+            cue_ptr->state = STOPPED;
+            phase = BALLS_MOVING;
+            std::cout << "CUE STOPPED MOVING! BALL START MOVING!\n";
+        }
+    }
+
+    if (phase == BALLS_MOVING) {
+        // collect old states
+        BallState states[2];
+        if (circle_ptr) {
+            states[0] = circle_ptr->getState();
+            this->circle_ptr->update(delta_time);
+        }
+        if (circle_ptr1) {
+            states[1] = circle_ptr1->getState();
+            this->circle_ptr1->update(delta_time);
+        }
+        //std::cout << glm::length(circle_ptr->displacement-circle_ptr1->displacement) << std::endl;
+
+        // the collision handling doesn't make sense by far, but ...
+        // check if falling
+        if (circle_ptr) {
+            for (auto pocket : table_ptr->pockets) {
+                if (circle_ptr->isFalling(*pocket)) {
+                    circle_ptr->status = FALLING;
+                    circle_ptr->pocket_ptr = pocket;
+                    delete circle_ptr;
+                    circle_ptr = NULL;
+                    break;
+                }
             }
         }
-        this->circle_ptr->update(delta_time);
-        if (this->circle_ptr->status != FALLING) {
+
+        if (circle_ptr1) {
+            for (auto pocket : table_ptr->pockets) {
+                if (circle_ptr1->isFalling(*pocket)) {
+                    circle_ptr1->status = FALLING;
+                    circle_ptr1->pocket_ptr = pocket;
+                    delete circle_ptr1;
+                    circle_ptr1 = NULL;
+                    break;
+                }
+            }
+        }
+
+        // check if hit the line 
+        if (circle_ptr) {
             for (auto line : table_ptr->lines) {
                 //print(this->circle_ptr->collide(table_ptr->lines[]))
                 if (this->circle_ptr->collide(line)) {
@@ -51,33 +100,58 @@ void Billiard2D::updateScene(float delta_time) {
                     break;
                 }
             }
-            //std::cout << "***************************\n";
-            for (auto pocket : table_ptr->pockets) {
-                if (this->circle_ptr->isFalling(*pocket)) {
-                    this->circle_ptr->status = FALLING;
-                    this->circle_ptr->pocket_ptr = pocket;
-                    delete this->circle_ptr;
-                    this->circle_ptr = NULL;
+        }
+
+        if (circle_ptr1) {
+            for (auto line : table_ptr->lines) {
+                //print(this->circle_ptr->collide(table_ptr->lines[]))
+                if (circle_ptr1->collide(line)) {
+                    if (line.layout == LEFT || line.layout == RIGHT) {
+                        this->circle_ptr1->speed.x = -this->circle_ptr1->speed.x; 
+                    } else {
+                        this->circle_ptr1->speed.y = -this->circle_ptr1->speed.y;
+                    }
                     break;
                 }
             }
-        } else {
-            if (!this->circle_ptr->isFalling(*this->circle_ptr->pocket_ptr)) {
-                this->circle_ptr->speed = glm::vec3(0.f);
-                glm::vec2 p0(this->circle_ptr->cx1, this->circle_ptr->cy1);
-                glm::vec2 p1(this->circle_ptr->pocket_ptr->cx1, this->circle_ptr->pocket_ptr->cy1);
-                glm::vec2 p = glm::normalize(p0 - p1) * (this->circle_ptr->pocket_ptr->r - this->circle_ptr->r) + p1;
-                this->circle_ptr->cx1 = p.x;
-                this->circle_ptr->cy1 = p.y;
-                this->circle_ptr->updateTransform();
-            }
         }
+
+        if (circle_ptr && circle_ptr1 && circle_ptr->collide(*circle_ptr1)) {
+            //using namespace glm;
+            std::cout << "**************\n";
+            std::cout << glm::length(circle_ptr1->displacement-circle_ptr->displacement) << std::endl;
+            std::cout << "Collide!\n";
+            circle_ptr->setState(states[0]);
+            circle_ptr1->setState(states[1]);
+            //std::cout << glm::length(circle_ptr1->displacement-circle_ptr->displacement) << std::endl;
+            float t = circle_ptr->getCollideTime(*circle_ptr1, delta_time, 1e-5);
+            circle_ptr->update(t);
+            circle_ptr1->update(t);
+            std::cout << glm::length(circle_ptr1->displacement-circle_ptr->displacement) << std::endl;
+
+            glm::vec3 speed0 = circle_ptr1->speed;
+            glm::vec3 relative_speed = circle_ptr->speed - speed0;
+            glm::vec3 d = glm::normalize(circle_ptr1->displacement - circle_ptr->displacement);
+            glm::vec3 relative_speed_para = glm::dot(relative_speed, d) * d;
+            glm::vec3 relative_speed_perp = relative_speed - relative_speed_para;
+            circle_ptr->speed = relative_speed_perp + speed0;
+            circle_ptr1->speed = relative_speed_para + speed0;
+
+            circle_ptr1->updateAcceleration();
+            circle_ptr->updateAcceleration();
+            // circle_ptr->speed = circle_ptr1->speed;
+            // circle_ptr->acceleration = circle_ptr1->acceleration;
+            // circle_ptr1->speed = middle_states.speed;
+            // circle_ptr1->acceleration = middle_states.acceleration;
+        }
+
         if (cue_ptr->state==STOPPED && noBallsMoving()) {
             std::cout <<  "Ball stopped moving\n";
             phase = ADJUST_ANGLE;
             player_active = true;
             cue_ptr->state = ADJUSTING;
             circle_ptr->speed = glm::vec3(0.f);
+            circle_ptr->acceleration = glm::vec3(0.f);
         }
     }
 }
@@ -87,6 +161,9 @@ void Billiard2D::render() {
     this->table_ptr->render();
     if (this->circle_ptr != NULL) {
         this->circle_ptr->render();
+    }
+    if (this->circle_ptr1 != NULL) {
+        this->circle_ptr1->render();
     }
 }
 
@@ -158,8 +235,15 @@ void Billiard2D::updatePlayerPhase(int button, int action) {
 }
 
 bool Billiard2D::noBallsMoving() {
+    bool moving1 = false;
+    bool moving2 = false;
+
     if (circle_ptr) {
-        return glm::length(circle_ptr->speed) < 1e-5;
+        moving1 = glm::length(circle_ptr->speed) > 1e-5;
+        //return glm::length(circle_ptr->speed) < 1e-5;
     }
-    return true;
+    if (circle_ptr1) {
+        moving2 = glm::length(circle_ptr1->speed) > 1e-5;
+    }
+    return !(moving1 || moving2);
 }

@@ -19,6 +19,12 @@
 //     FALLING,
 // };
 
+struct BallState {
+    glm::vec3 displacement;
+    glm::vec3 speed;
+    glm::vec3 acceleration;
+};
+
 class Ball2D {
     float cx, cy;
     float cz;
@@ -46,7 +52,7 @@ public:
     glm::vec3 acceleration;
     glm::vec3 displacement;
 
-    Ball2D(float cx, float cy, float r, int ntriangles, std::string vertex_shader_path, std::string fragment_shader_path);
+    Ball2D(float cx, float cy, float r, int ntriangles, std::string texture_path);
     ~Ball2D() {
         delete shader_ptr;
         delete vertices;
@@ -79,6 +85,33 @@ public:
     void set_z(float z) {
         this->cz = z;
         this->updateTransform();
+    }
+
+    BallState getState() {
+        return BallState{displacement, speed, acceleration};
+    }
+
+    void setState(const BallState &state) {
+        displacement = state.displacement;
+        speed        = state.speed;
+        acceleration = state.acceleration;
+        cx1          = displacement.x;
+        cy1          = displacement.y;
+    }
+
+    void printState() {
+        std::cout << "DIS: " << displacement.x << " " << displacement.y << " " << displacement.z << std::endl;
+        std::cout << "VEL: " << speed.x << " " << speed.y << " " << speed.z << std::endl;
+        std::cout << "ACC: " << acceleration.x << " " << acceleration.y << " " << acceleration.z << std::endl;
+    }
+
+    void updateAcceleration() {
+        if (glm::length(speed) > 1e-5) {
+            acceleration = -(sliding_fraction * mass * 0.4f) * glm::normalize(speed);
+        } else {
+            speed = glm::vec3(0.f);
+            acceleration = glm::vec3(0.f);
+        }
     }
 };
 
