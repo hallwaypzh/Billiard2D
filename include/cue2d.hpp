@@ -37,7 +37,7 @@ public:
     glm::mat4 translation_mat0 = glm::mat4(1.f);
     glm::mat4 translation_mat1 = glm::mat4(1.f);
     glm::mat4 rotation_mat = glm::mat4(1.f);
-    float     mass         = 1.f;
+    float     mass         = 2.f;
     CueState state = ADJUSTING;
     Cue2D(const glm::mat4 &view_project_mat);
     ~Cue2D() {

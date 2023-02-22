@@ -3,6 +3,7 @@
 
 #include <string>
 #include <algorithm>
+#include <random>
 
 #include <shader_m.hpp>
 #include <glad/glad.h>
@@ -30,7 +31,6 @@ struct BallState {
 class Ball2D {
     float cx, cy;
     float cz;
-    int ntriangles;
     Shader *shader_ptr;
     
     glm::mat4 transform;
@@ -43,6 +43,7 @@ class Ball2D {
     void triangulate();
 
     BallState old_state;
+    int idx;
 
     //Billiard2D* game_ptr = NULL; //so that we can access the geometries of the game easily
 public:
@@ -58,7 +59,7 @@ public:
     glm::vec3 acceleration;
     glm::vec3 displacement;
 
-    Ball2D(float cx, float cy, float r, int ntriangles, std::string texture_path);
+    Ball2D(int idx, float cx, float cy, float r, std::string texture_path);
     ~Ball2D() {
         delete shader_ptr;
         delete vertices;
@@ -132,6 +133,12 @@ public:
         acceleration           = old_state.acceleration;
         cx1                    = displacement.x;
         cy1                    = displacement.y;
+    }
+
+    void handleCollision(Ball2D &ball);
+
+    bool isMoving() {
+        return glm::length(speed) > 1e-5;
     }
 
     //void setGamePtr(Billiard2D* game_ptr);

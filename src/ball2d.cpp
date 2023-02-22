@@ -1,14 +1,14 @@
 #include "ball2d.hpp"
 #include "stb_image.h"
 
-Ball2D::Ball2D(float cx, float cy, float r, int ntriangles, std::string texture_path) {
+Ball2D::Ball2D(int idx, float cx, float cy, float r, std::string texture_path) {
+    this->idx           = idx;
     this->cx            = 0.f;
     this->cy            = 0.f;
     this->cx1           = cx;
     this->cy1           = cy;
     this->displacement  = glm::vec3(cx1, cy1, 0.f);
     this->r             = r;
-    this->ntriangles    = ntriangles;
 
     this->acceleration  = glm::vec3(0.f);
     this->speed         = glm::vec3(0.f); //glm::vec3(0.3f, 0.4f, 0.f);
@@ -100,7 +100,7 @@ void Ball2D::render() {
 void Ball2D::update(float deltaTime) {
     backupState();
     if (glm::length(speed) > 0) {
-        acceleration = -(sliding_fraction * mass * 0.4f) * glm::normalize(speed);
+        acceleration = -(sliding_fraction * mass * 0.98f * 5) * glm::normalize(speed);
         glm::vec3 speed1 = speed + acceleration * deltaTime;
         if (glm::dot(speed1, speed) < 0) {
             deltaTime = glm::length(speed) / glm::length(acceleration);
@@ -139,16 +139,19 @@ bool Ball2D::isFalling(const Circle2D &pocket) {
 }
 
 bool Ball2D::collide(const Ball2D &ball) {
-    return glm::length(glm::vec2(ball.cx1, ball.cy1)-glm::vec2(cx1, cy1)) < (r+ball.r+1e-6);
+    // std::cout << idx << " " << ball.idx << std::endl;
+    // std::cout << glm::length(glm::vec2(ball.cx1, ball.cy1)-glm::vec2(cx1, cy1)) << std::endl;
+    // std::cout << r + ball.r+1e-6 << std::endl;
+    return glm::length(glm::vec2(ball.cx1, ball.cy1)-glm::vec2(cx1, cy1)) < (r+ball.r);
 }
 
 
 float Ball2D::getCollideTime(const Ball2D &ball, float deltaTime, float absoluteTolerance=1e-5) {
     float l = 0.f, r = deltaTime;
-
-    glm::vec3 A = glm::vec3(cx1, cy1, cz) - glm::vec3(ball.cx1, ball.cy1, ball.cz); //relative displacement
-    glm::vec3 B = speed - ball.speed;
-    glm::vec3 C = 0.5f * (acceleration - ball.acceleration);
+    
+    glm::vec3 A = glm::vec3(old_state.displacement.x, old_state.displacement.y, 0.f) - glm::vec3(ball.old_state.displacement.x,ball.old_state.displacement.y, 0.f); //relative displacement
+    glm::vec3 B = old_state.speed - ball.old_state.speed;
+    glm::vec3 C = 0.5f * (old_state.acceleration - ball.old_state.acceleration);
     float d = ball.r + this->r;
     while (true) {
         float m = (l + r) / 2.f;
@@ -164,4 +167,21 @@ float Ball2D::getCollideTime(const Ball2D &ball, float deltaTime, float absolute
             return m;
         }
     }
+}
+
+void Ball2D::handleCollision(Ball2D &ball) {
+    glm::vec3 speed0 = ball.speed;
+    glm::vec3 relative_speed = speed - speed0;
+    glm::vec3 d = glm::normalize(glm::vec3(glm::vec2(displacement - ball.displacement), 0.f));
+    glm::vec3 relative_speed_para = glm::dot(relative_speed, d) * d;
+    glm::vec3 relative_speed_perp = relative_speed - relative_speed_para;
+    speed = relative_speed_perp + speed0;
+    updateAcceleration();
+    ball.speed = relative_speed_para + speed0;
+    ball.updateAcceleration();
+    // std::cout << "HANDLE COLLISION BETWEEN BALL " << idx << " AND " << ball.idx << std::endl;
+    // std::cout << ball.idx << std::endl;
+    ball.printState();
+    // std::cout << idx << std::endl;
+    printState();
 }

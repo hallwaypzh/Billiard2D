@@ -2,6 +2,7 @@
 #define GAME_HPP
 
 #include <cstdio>
+#include <random>
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -24,8 +25,7 @@ enum PlayerPhase {
 
 class Billiard2D {
     //Circle2D *circle_ptr;
-    Ball2D      *circle_ptr;
-    Ball2D      *circle_ptr1;
+    // Ball2D      *circle_ptr;
     Table2D *table_ptr;
     Cue2D *cue_ptr;
     bool player_active = true;
@@ -41,14 +41,7 @@ public:
     Billiard2D(float fovy, float aspect_ratio, float z_near, float z_far);
     ~Billiard2D() {
         delete camera_ptr;
-        if (circle_ptr != NULL) {
-            delete circle_ptr;
-        }
-        if (circle_ptr1 != NULL) {
-            delete circle_ptr1;
-        }
-
-        for (int i=1; i<16; i++) {
+        for (int i=0; i<16; i++) {
             if (balls[i] != NULL) {
                 delete balls[i];
             }
@@ -60,9 +53,13 @@ public:
     void render();
     void updateAspectRatio(float aspect_ratio) {
         this->camera_ptr->update_aspect_ratio(aspect_ratio);
-        this->circle_ptr->setViewProjectMatrix(
-            camera_ptr->project * camera_ptr->view
-        );
+        for (auto ball:balls) {
+            if (ball) {
+                ball->setViewProjectMatrix(
+                    camera_ptr->project * camera_ptr->view
+                );
+            }
+        }
     }
 
     void updateCueAngle(glm::vec3 v);
